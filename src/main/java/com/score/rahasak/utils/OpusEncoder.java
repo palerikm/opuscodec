@@ -23,11 +23,16 @@ public class OpusEncoder {
     public static final int OPUS_APPLICATION_AUDIO               = 2049;
     public static final int OPUS_APPLICATION_RESTRICTED_LOWDELAY = 2051;
 
+    public static final int OPUS_UNCONSTRAINED_VBR               = 0;
+    public static final int OPUS_CONSTRAINED_VBR                 = 1;
+
     private native int nativeInitEncoder(@Annotations.SamplingRate int samplingRate,
                                          @Annotations.NumberOfChannels int numberOfChannels,
                                          @ApplicationType int application);
     private native int nativeSetBitrate(int bitrate);
     private native int nativeSetComplexity(@IntRange(from=0, to=10) int complexity);
+    private native int nativeSetVBR(boolean useVBR);
+    private native int nativeSetVBRConstraint(@IntRange(from=0, to=1) int constraint);
     private native int nativeEncodeShorts(short[] in, int frames, byte[] out);
     private native int nativeEncodeBytes(byte[] in, int frames, byte[] out);
     private native boolean nativeReleaseEncoder();
@@ -42,6 +47,14 @@ public class OpusEncoder {
 
     public void setBitrate(int bitrate) {
         OpusError.throwIfError(this.nativeSetBitrate(bitrate));
+    }
+
+    public void setUseVBR(boolean useVBR) {
+        OpusError.throwIfError(this.nativeSetVBR(useVBR));
+    }
+
+    public void setVBRConstraint(int vbrConstraint) {
+        OpusError.throwIfError(this.nativeSetVBRConstraint(vbrConstraint));
     }
 
     public void setComplexity(int complexity) {

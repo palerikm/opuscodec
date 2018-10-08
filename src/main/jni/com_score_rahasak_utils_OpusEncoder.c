@@ -36,6 +36,20 @@ JNIEXPORT jint JNICALL Java_com_score_rahasak_utils_OpusEncoder_nativeSetComplex
     return opus_encoder_ctl(enc, OPUS_SET_COMPLEXITY(complexity));
 }
 
+JNIEXPORT jint JNICALL Java_com_score_rahasak_utils_OpusEncoder_nativeSetVBR(JNIEnv *env, jobject obj, jboolean useVBR) {
+	jclass cls = (*env)->GetObjectClass(env, obj);
+	jfieldID fid = (*env)->GetFieldID(env, cls, "address", "J");
+	OpusEncoder* enc = (OpusEncoder*)((*env)->GetLongField(env, obj, fid));
+	return opus_encoder_ctl(enc, OPUS_SET_VBR(useVBR == JNI_TRUE ? 1 : 0));
+}
+
+JNIEXPORT jint JNICALL Java_com_score_rahasak_utils_OpusEncoder_nativeSetVBRConstraint(JNIEnv *env, jobject obj, jint vbrConstraint) {
+ jclass cls = (*env)->GetObjectClass(env, obj);
+ jfieldID fid = (*env)->GetFieldID(env, cls, "address", "J");
+ OpusEncoder* enc = (OpusEncoder*)((*env)->GetLongField(env, obj, fid));
+ return opus_encoder_ctl(enc, OPUS_SET_VBR_CONSTRAINT(vbrConstraint));
+}
+
 JNIEXPORT jint JNICALL Java_com_score_rahasak_utils_OpusEncoder_nativeEncodeShorts (JNIEnv *env, jobject obj, jshortArray in, jint frames, jbyteArray out)
 {
 	jclass cls = (*env)->GetObjectClass(env, obj);
