@@ -19,6 +19,7 @@ import android.widget.Button;
 
 import com.score.rahasak.utils.OpusDecoder;
 import com.score.rahasak.utils.OpusEncoder;
+import com.score.rahasak.utils.OpusRepacketizer;
 
 import java.util.Arrays;
 
@@ -58,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
-                    new String[] { Manifest.permission.RECORD_AUDIO },
+                    new String[]{Manifest.permission.RECORD_AUDIO},
                     MY_PERMISSIONS_REQUEST_RECORD_AUDIO);
             return;
         }
@@ -109,11 +110,12 @@ public class MainActivity extends AppCompatActivity {
 
     private class AudioThread extends Thread {
         // Sample rate must be one supported by Opus.
-        static final int SAMPLE_RATE = 8000;
+        static final int SAMPLE_RATE = 16000;
+        static final int BIT_RATE = 32000; // 4 kBps
 
         // Number of samples per frame is not arbitrary,
         // it must match one of the predefined values, specified in the standard.
-        static final int FRAME_SIZE = 160;
+        static final int FRAME_SIZE = 320;
 
         // 1 or 2
         static final int NUM_CHANNELS = 1;
@@ -136,6 +138,8 @@ public class MainActivity extends AppCompatActivity {
             // init opus encoder
             OpusEncoder encoder = new OpusEncoder();
             encoder.init(SAMPLE_RATE, NUM_CHANNELS, OpusEncoder.OPUS_APPLICATION_VOIP);
+            encoder.setBitrate(BIT_RATE);
+            encoder.setUseVBR(false);
 
             // init audio track
             AudioTrack track = new AudioTrack(AudioManager.STREAM_SYSTEM,
@@ -156,6 +160,10 @@ public class MainActivity extends AppCompatActivity {
             byte[] inBuf = new byte[FRAME_SIZE * NUM_CHANNELS * 2];
             byte[] encBuf = new byte[1024];
             short[] outBuf = new short[FRAME_SIZE * NUM_CHANNELS];
+            byte[] repacketizerOut = new byte[FRAME_SIZE * NUM_CHANNELS * 6];
+
+            long repacketizerPointer = OpusRepacketizer.nativeCreate();
+            int numberOfFrames = 0;
 
             try {
                 while (!Thread.interrupted()) {
@@ -177,6 +185,18 @@ public class MainActivity extends AppCompatActivity {
 
                     byte[] encBuf2 = Arrays.copyOf(encBuf, encoded);
 
+                    numberOfFrames = OpusRepacketizer.nativeGetNbFrames(repacketizerPointer);
+                    Log.v(TAG, "Number of Repacketized Frames: " + numberOfFrames);
+
+                    if (numberOfFrames >= 6) {
+                        int totalBytesRepacketized = OpusRepacketizer.nativeOut(repacketizerPointer, repacketizerOut, repacketizerOut.length);
+                        Log.v(TAG, "Repacketized Bytes: " + totalBytesRepacketized);
+                        Log.v(TAG, "Resetting repacketizer");
+                        OpusRepacketizer.nativeInit(repacketizerPointer);
+                    } else {
+                        OpusRepacketizer.nativeCat(repacketizerPointer, encBuf, encoded);
+                    }
+
                     int decoded = decoder.decode(encBuf2, outBuf, FRAME_SIZE);
 
                     Log.v(TAG, "Decoded back " + decoded * NUM_CHANNELS * 2 + " bytes");
@@ -188,6 +208,7 @@ public class MainActivity extends AppCompatActivity {
                 recorder.release();
                 track.stop();
                 track.release();
+                OpusRepacketizer.nativeDestroy(repacketizerPointer);
             }
         }
     }

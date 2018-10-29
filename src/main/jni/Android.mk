@@ -116,7 +116,8 @@ endif
 LOCAL_SRC_FILES := \
 	$(patsubst %,$(LOCAL_PATH)/opus/%,$(SILK_SOURCES) $(CELT_SOURCES) $(OPUS_SOURCES)) \
     com_score_rahasak_utils_OpusEncoder.c \
-    com_score_rahasak_utils_OpusDecoder.c
+    com_score_rahasak_utils_OpusDecoder.c \
+    com_score_rahasak_utils_OpusRepacketizer.c
 
 all:
 	echo $(LOCAL_SRC_FILES)
