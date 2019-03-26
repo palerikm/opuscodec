@@ -26,6 +26,13 @@ JNIEXPORT jint JNICALL
 Java_com_score_rahasak_utils_OpusEncoder_nativeSetComplexity(JNIEnv *env, jobject instance,
                                                              jint complexity);
 
+JNIEXPORT jint JNICALL
+Java_com_score_rahasak_utils_OpusEncoder_nativeSetVBR(JNIEnv *env, jobject instance,
+                                                            jboolean useVBR);
+
+JNIEXPORT jint JNICALL
+Java_com_score_rahasak_utils_OpusEncoder_nativeSetVBRConstraint(JNIEnv *env, jobject instance,
+                                                           jint vbrConstraint);
 #ifdef __cplusplus
 }
 #endif
