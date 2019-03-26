@@ -13,7 +13,7 @@ with the following changes:
 - errors converted to exceptions
 
 ## Usage
-
+TODO update this...
 Add this to your main _build.gradle_:
 ```gradle
 allprojects {
